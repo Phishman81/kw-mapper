@@ -1,32 +1,25 @@
 import streamlit as st
 import pandas as pd
-import ast
 
-st.set_page_config(page_title="Keyword-to-URL Mapper MVP", layout="wide")
+st.set_page_config(page_title="KW-Mapper", layout="wide")
+st.title("🔗 Keyword-zu-URL Mapper")
 
-st.title("🔍 Keyword-to-URL Mapper")
-st.markdown("Lade eine Screaming Frog CSV mit Embeddings hoch, um loszulegen.")
-
-uploaded_file = st.file_uploader(
-    "📤 CSV-Datei auswählen (Screaming Frog Export)",
-    type=["csv"]
+# File uploader
+uploaded = st.file_uploader(
+    "Lade deine Embeddings-CSV oder -XLSX hoch", 
+    type=["csv", "xlsx"]
 )
 
-if uploaded_file:
+if uploaded:
     try:
-        df = pd.read_csv(uploaded_file)
-
-        # Prüfen, ob "Embedding" Spalte vorhanden ist
-        if "Embedding" not in df.columns:
-            st.error("Die Spalte 'Embedding' wurde nicht gefunden.")
+        if uploaded.name.lower().endswith(".csv"):
+            df = pd.read_csv(uploaded)
         else:
-            # Embedding-Spalte in echte Listen umwandeln
-            df["Embedding_vector"] = df["Embedding"].apply(lambda x: ast.literal_eval(x) if isinstance(x, str) else None)
-
-            st.success(f"{len(df):,} Zeilen geladen, Embeddings konvertiert.")
-            st.dataframe(df[["Address", "Embedding_vector"]].head())
-
+            df = pd.read_excel(uploaded)
     except Exception as e:
-        st.error(f"Fehler beim Einlesen der Datei: {e}")
-else:
-    st.info("⬅️ Bitte zuerst eine Datei hochladen.")
+        st.error(f"Fehler beim Einlesen: {e}")
+    else:
+        st.success("Datei erfolgreich geladen!")
+        st.write("Vorschau deiner Daten:")
+        st.dataframe(df.head(10))
+        st.write(f"Spalten: {', '.join(df.columns)}")
